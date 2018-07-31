@@ -29,3 +29,6 @@ public class RibbonFilterConfiguration {
 }
 
 ```
+
+## usage demo
+[https://github.com/ysykzheng/spring-cloud-multiversion]
