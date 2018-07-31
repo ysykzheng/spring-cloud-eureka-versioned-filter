@@ -30,5 +30,5 @@ public class RibbonFilterConfiguration {
 
 ```
 
-## usage demo
-https://github.com/ysykzheng/spring-cloud-multiversion
+## [spring-cloud-eureka-versioned-filter usage demo](https://github.com/ysykzheng/spring-cloud-multiversion)
+
