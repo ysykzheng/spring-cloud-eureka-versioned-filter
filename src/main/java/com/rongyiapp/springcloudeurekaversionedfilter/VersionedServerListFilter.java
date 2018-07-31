@@ -6,10 +6,10 @@ import com.netflix.client.config.IClientConfig;
 import com.netflix.loadbalancer.AbstractServerListFilter;
 import com.netflix.loadbalancer.Server;
 import com.netflix.niws.loadbalancer.DiscoveryEnabledServer;
-import com.rongyiapp.springcloudeurekaversionedfilter.VersionedMapping.Mapping;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.lang.StringUtils;
@@ -19,10 +19,10 @@ public class VersionedServerListFilter<T extends Server> extends
 
   private static final String VERSION_KEY = "versions";
 
-  private final VersionedMapping versionedMapping;
+  private final Map<String, String> mapping;
 
-  public VersionedServerListFilter(VersionedMapping versionedMapping) {
-    this.versionedMapping = versionedMapping;
+  public VersionedServerListFilter(Map<String, String> mapping) {
+    this.mapping = mapping;
   }
 
   @Override
@@ -42,7 +42,6 @@ public class VersionedServerListFilter<T extends Server> extends
   public List<T> getFilteredListOfServers(List<T> servers) {
     return (List<T>) servers.stream()
                             .map(server -> (DiscoveryEnabledServer) server)
-                            .peek(discoveryEnabledServer -> System.out.println(discoveryEnabledServer.getId()))
                             .filter(server -> filterServer(server))
                             .collect(Collectors.toList());
 
@@ -51,21 +50,18 @@ public class VersionedServerListFilter<T extends Server> extends
   private boolean filterServer(DiscoveryEnabledServer server) {
     InstanceInfo instanceInfo = server.getInstanceInfo();
     String appName = instanceInfo.getAppName();
-    System.out.println("appName=" + appName);
-    if (this.versionedMapping.getMappingList().isEmpty()) {
+    if (this.mapping.isEmpty()) {
       return true;
     }
     //不区分大小写
-    Optional<Mapping> optionalMapping = this.versionedMapping.getMappingList()
-                                                             .stream()
-                                                             .filter(mapping -> StringUtils.equalsIgnoreCase(appName, mapping.getServiceName())).findFirst();
-    if (!optionalMapping.isPresent()) {
+    Optional<String> stringOptional = this.mapping.keySet().stream().filter(key -> StringUtils.equalsIgnoreCase(appName, key)).findFirst();
+
+    if (!stringOptional.isPresent()) {
       return true;
     } else {
-      Mapping mapping = optionalMapping.get();
+      String version = this.mapping.get(stringOptional.get());
       List<String> versions = this.getInstanceVersions(instanceInfo);
-      System.out.println(versions);
-      return versions.isEmpty() || versions.contains(mapping.getVersion());
+      return versions.isEmpty() || versions.contains(version);
     }
   }
 }
